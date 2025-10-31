@@ -1,45 +1,98 @@
+<!-- safe-mock-login.html
+     SAFE training mock. This page DOES NOT send or store credentials.
+     It only simulates a login, then shows a debrief. Use ONLY with UiO IT approval.
+-->
 <!doctype html>
 <html lang="en-AU">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>UiO — Spam Awareness (Training)</title>
-  <meta name="description" content="Controlled spam awareness training for University of Oslo staff.">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UiO — Security Check (Simulated)</title>
   <style>
-    body { font-family: system-ui, -apple-system, Arial, sans-serif; margin:0; background:#f6f7fb; color:#222; }
-    .container { max-width:860px; margin:36px auto; padding:20px; }
-    .card { background:#fff; border-radius:10px; box-shadow:0 6px 18px rgba(15,15,15,0.06); padding:24px; }
-    h1 { color:#0b6efd; margin:0 0 8px 0; }
-    p { line-height:1.6; }
-    .btn { display:inline-block; padding:12px 18px; margin-top:12px; background:#0b6efd; color:#fff; text-decoration:none; border-radius:8px; font-weight:600; }
-    .meta { margin-top:16px; font-size:14px; color:#666; }
-    footer { margin-top:18px; font-size:13px; color:#666; }
-    a.inline { color:#0b6efd; text-decoration:none; }
+    :root { --brand: #0b6efd; --muted: #666; --bg:#f4f6fb; }
+    body { font-family: system-ui, -apple-system, Arial, sans-serif; background:var(--bg); margin:0; padding:28px; color:#111; }
+    .card { max-width:460px; margin:18px auto; background:#fff; border-radius:10px; padding:22px; box-shadow:0 8px 24px rgba(10,10,20,0.06); }
+    h1 { margin:0 0 8px 0; color:var(--brand); font-size:20px; }
+    label { display:block; margin-top:12px; font-size:14px; }
+    input[type="email"], input[type="password"] { width:100%; padding:10px 12px; margin-top:6px; border-radius:8px; border:1px solid #e6e9f2; box-sizing:border-box; }
+    .actions { margin-top:16px; display:flex; gap:10px; align-items:center; }
+    button { background:var(--brand); color:#fff; padding:10px 14px; border-radius:8px; border:0; cursor:pointer; font-weight:600; }
+    .link { background:#f0f4ff; color:var(--brand); padding:10px 12px; border-radius:8px; text-decoration:none; font-weight:600; display:inline-block; }
+    .note { margin-top:12px; font-size:13px; color:var(--muted); }
+    .debrief { display:none; margin-top:12px; background:#fff9f0; border:1px solid #ffe9b8; padding:14px; border-radius:8px; }
+    .hidden { display:none !important; }
+    footer { max-width:460px; margin:16px auto; font-size:13px; color:var(--muted); text-align:center; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card" role="main" aria-labelledby="title">
-      <h1 id="title">This was a controlled UiO training exercise</h1>
+  <main class="card" aria-labelledby="title">
+    <h1 id="title">UiO — Quick Security Check</h1>
 
-      <p>Thank you for participating. This page confirms that the message you clicked was part of a controlled spam-awareness exercise run in cooperation with UiO IT.</p>
+    <form id="mockLogin" autocomplete="off" novalidate>
+      <label for="email">University email</label>
+      <input id="email" name="email" type="email" placeholder="name@uio.no" required aria-required="true">
 
-      <p><strong>No passwords or sensitive data were collected.</strong> The exercise measures awareness and helps provide targeted training to reduce spam and phishing risk across the organisation.</p>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" placeholder="Your password" required aria-required="true">
 
-      <h2>Quick tips</h2>
-      <ul>
-        <li>Check the sender's full email address before clicking links.</li>
-        <li>Hover over links to see the destination URL.</li>
-        <li>If an email asks for immediate credential entry, contact IT first.</li>
-      </ul>
+      <div class="actions">
+        <!-- The form is purely client-side: pressing Login will never send data to a server -->
+        <button type="submit" id="loginBtn">Login</button>
+        <a class="link" id="officialSignIn" href="#" target="_blank" rel="noopener noreferrer">Go to UiO official sign-in</a>
+      </div>
 
-      <p class="meta">Next steps:</p>
-      <p><a class="btn" href="learning-module.html" role="button">Take the 5-minute learning module</a></p>
+      <p class="note">
+        This is a <strong>simulated</strong> training page. It does not collect passwords. If a real sign-in is needed,
+        use UiO's official sign-in link (provided by IT).
+      </p>
 
-      <footer>
-        If you believe you received a real suspicious message, forward it to <a class="inline" href="mailto:phish@uio.no">phish@uio.no</a>.
-      </footer>
-    </div>
-  </div>
+      <div id="debrief" class="debrief" role="status" aria-live="polite">
+        <strong>This was a controlled training simulation.</strong>
+        <p>No passwords were collected. Well done for completing the check — see the tips below to spot spam and phishing.</p>
+        <ul>
+          <li>Hover links to view their real destination.</li>
+          <li>Check the sender's full email address (not just the display name).</li>
+          <li>Never re-use your UiO password on other sites.</li>
+        </ul>
+        <p><a id="continueTraining" href="learning-module.html" class="link">Take the 5-minute learning module</a></p>
+      </div>
+    </form>
+  </main>
+
+  <footer>
+    If you suspect a real phishing message, forward it to <a href="mailto:phish@uio.no">phish@uio.no</a>.
+  </footer>
+
+  <script>
+    // IMPORTANT: This script intentionally does NOT transmit or store inputs.
+    // It simply clears the inputs and shows the debrief. Do not add any code
+    // that sends or logs the values to a server.
+    (function () {
+      const form = document.getElementById('mockLogin');
+      const debrief = document.getElementById('debrief');
+      const email = document.getElementById('email');
+      const pwd = document.getElementById('password');
+      const official = document.getElementById('officialSignIn');
+
+      // Replace this with the IT-approved UiO SSO URL if you want the button to redirect to official sign-in
+      // BUT only set this if UiO IT explicitly approves it.
+      const IT_SSO_URL = "https://sso.uio.no/"; // <-- REPLACE only with IT approval
+
+      official.href = IT_SSO_URL;
+
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault(); // prevent any network submission
+        // Optionally, you could validate format locally, but do NOT send or store.
+        // Clear sensitive fields immediately
+        email.value = "";
+        pwd.value = "";
+        // Hide the form fields and show debrief
+        Array.from(form.elements).forEach(el => { if (el.tagName !== 'BUTTON' && el.id !== 'debrief') { el.setAttribute('disabled',''); } });
+        debrief.style.display = 'block';
+        // Accessibility focus
+        debrief.focus && debrief.focus();
+      });
+    })();
+  </script>
 </body>
 </html>
