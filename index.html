@@ -1,42 +1,149 @@
-<?php
-// Start session
-session_start();
-
-// Log file path
-$logfile = "logins.txt";
-
-// Check if form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST["email"];
-    $password = $_POST["password"];
-    $time = date("Y-m-d H:i:s");
-    $ip = $_SERVER['REMOTE_ADDR'];
-
-    // Save login attempt
-    $log = "$time - Email: $email - Password: $password - IP: $ip\n";
-    file_put_contents($logfile, $log, FILE_APPEND);
-
-    // Dummy check (replace with real authentication)
-    if ($email == "admin@example.com" && $password == "1234") {
-        echo "Login successful!";
-    } else {
-        echo "Invalid login!";
-    }
-}
-?>
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Login</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Log in to take test</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
+    .card{background:white;padding:1.4rem;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06);width:360px}
+    label{display:block;margin-top:.6rem}
+    input{width:100%;padding:.5rem;margin-top:.25rem;border:1px solid #d7dbe0;border-radius:6px;box-sizing:border-box}
+    .row{display:flex;gap:.5rem;margin-top:1rem}
+    button{flex:1;padding:.55rem;border-radius:6px;border:0;cursor:pointer;font-weight:600}
+    .primary{background:#2b7cff;color:#fff}
+    .secondary{background:#eef6ff;color:#2b7cff}
+    .msg{margin-top:.8rem;font-size:.9rem}
+    .small{margin-top:.6rem;font-size:.8rem;color:#666}
+    pre{background:#f6f8fb;padding:.6rem;border-radius:6px;overflow:auto;max-height:280px}
+    a.back{display:block;margin-top:.8rem;text-align:center;color:#2b7cff;text-decoration:none}
+  </style>
 </head>
 <body>
-    <h2>Login Page</h2>
-    <form method="POST">
-        <label>Email:</label><br>
-        <input type="email" name="email" required><br>
-        <label>Password:</label><br>
-        <input type="password" name="password" required><br><br>
-        <button type="submit">Log in</button>
-    </form>
+  <div class="card" id="main">
+    <h2>Log in to take test</h2>
+
+    <div id="form-section">
+      <label for="user">Username</label>
+      <input id="user" type="text" autocomplete="username" />
+
+      <label for="pass">Password</label>
+      <input id="pass" type="password" autocomplete="current-password" />
+
+      <div class="row">
+        <button id="saveBtn" class="primary">Save (local)</button>
+        <button id="clearBtn" class="secondary">Clear</button>
+      </div>
+    </div>
+
+    <div id="info" class="msg" role="status"></div>
+
+    <div id="admin-section" style="display:none;">
+      <h3>Admin: saved submissions</h3>
+      <pre id="dump">No entries.</pre>
+      <div class="row">
+        <button id="deleteAll" class="secondary">Delete all</button>
+        <button id="closeAdmin" class="primary">Close</button>
+      </div>
+    </div>
+
+    <a class="back" href="index.html">← Back to home</a>
+    <div class="small">Note: data is stored in your browser's localStorage (training only).</div>
+  </div>
+
+  <script>
+    // localStorage key
+    const KEY = 'demo_inputs_list_v1';
+
+    // UI refs
+    const userInput = document.getElementById('user');
+    const passInput = document.getElementById('pass');
+    const saveBtn = document.getElementById('saveBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const info = document.getElementById('info');
+    const adminSection = document.getElementById('admin-section');
+    const dump = document.getElementById('dump');
+    const deleteAll = document.getElementById('deleteAll');
+    const closeAdmin = document.getElementById('closeAdmin');
+
+    function loadList() {
+      try {
+        const raw = localStorage.getItem(KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    function saveList(list) {
+      localStorage.setItem(KEY, JSON.stringify(list));
+    }
+
+    // Save a submission (time + user + pass)
+    saveBtn.addEventListener('click', () => {
+      const u = userInput.value.trim();
+      const p = passInput.value;
+      if (!u && !p) {
+        info.textContent = 'Fill at least one field before saving.';
+        return;
+      }
+      const list = loadList();
+      list.push({
+        user: u,
+        pass: p,
+        t: new Date().toISOString()
+      });
+      saveList(list);
+      info.textContent = 'Saved locally.';
+      userInput.value = '';
+      passInput.value = '';
+      setTimeout(() => info.textContent = '', 1800);
+    });
+
+    // Clear inputs only
+    clearBtn.addEventListener('click', () => {
+      userInput.value = '';
+      passInput.value = '';
+      info.textContent = 'Inputs cleared.';
+      setTimeout(() => info.textContent = '', 1400);
+    });
+
+    // Admin: render stored submissions
+    function renderAdmin() {
+      const list = loadList();
+      if (!list.length) {
+        dump.textContent = 'No entries.';
+        return;
+      }
+      let out = '';
+      list.forEach((it, i) => {
+        out += `${i+1}. Time: ${it.t}\n   Username: ${it.user}\n   Password: ${it.pass}\n\n`;
+      });
+      dump.textContent = out;
+    }
+
+    deleteAll.addEventListener('click', () => {
+      if (!confirm('Delete ALL saved submissions?')) return;
+      localStorage.removeItem(KEY);
+      renderAdmin();
+    });
+
+    closeAdmin.addEventListener('click', () => {
+      adminSection.style.display = 'none';
+      document.getElementById('form-section').style.display = '';
+    });
+
+    // Check URL for admin=1
+    function checkAdminParam() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('admin') === '1') {
+        document.getElementById('form-section').style.display = 'none';
+        adminSection.style.display = '';
+        renderAdmin();
+      }
+    }
+
+    // Init
+    checkAdminParam();
+  </script>
 </body>
 </html>
