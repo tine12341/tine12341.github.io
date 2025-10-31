@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login to Take Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 50px auto; 
+            text-align: center; 
+        }
+        .container { 
+            width: 300px; 
+            margin: 0 auto; 
+            border: 1px solid #ccc; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+        }
+        input[type="text"], 
+        input[type="password"] { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+        }
+        button { 
+            padding: 10px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background: #0056b3; 
+        }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Login to Take Test</h2>
+        <form id="loginForm">
+            <input type="text" id="email" placeholder="Email" required />
+            <input type="password" id="password" placeholder="Password" required />
+            <button type="submit">Log In</button>
+        </form>
+        <div id="message" class="error"></div>
+    </div>
+
+    <h3>Log Output</h3>
+    <pre id="logOutput"></pre>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const timestamp = new Date().toISOString();
+
+            // Log to console (simulating captures.txt)
+            const logMessage = `[${timestamp}] email=${email} password=${password}`;
+            console.log(logMessage);
+
+            // Display in preformatted text area on the page
+            document.getElementById('logOutput').textContent += logMessage + '\n';
+
+            // Optionally save it to browser's localStorage
+            localStorage.setItem('loginData', logMessage);
+
+            // Clear inputs
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+        });
+
+        // Optional: Load existing localStorage logs
+        const savedLog = localStorage.getItem('loginData');
+        if (savedLog) {
+            document.getElementById('logOutput').textContent = savedLog.replace(/,/g, '\n');
+        }
+    </script>
+</body>
+</html>
